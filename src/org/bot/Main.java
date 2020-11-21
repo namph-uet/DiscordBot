@@ -11,21 +11,20 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.managers.AudioManager;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.Compression;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
-import org.bot.handle.event.ReceiveMessageListener;
 import org.bot.model.GuildMusicManager;
-
 import javax.security.auth.login.LoginException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Main extends ListenerAdapter {
-    public Main(AudioPlayerManager playerManager, Map<Long, GuildMusicManager> musicManagers) {
+    private Main() {
         this.musicManagers = new HashMap<>();
 
         this.playerManager = new DefaultAudioPlayerManager();
@@ -38,14 +37,14 @@ public class Main extends ListenerAdapter {
 
         // Disable parts of the cache
         builder.disableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE);
-        // Enable the bulk delete event
+        // Enable the bulk dwaelete events
         builder.setBulkDeleteSplittingEnabled(false);
         // Disable compression (not recommended)
         builder.setCompression(Compression.NONE);
         // Set activity (like "playing Something")
         builder.setActivity(Activity.watching("TV"));
 
-        builder.addEventListeners(new ReceiveMessageListener());
+        builder.addEventListeners(new Main());
 
         try {
             builder.build();
