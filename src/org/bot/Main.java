@@ -20,6 +20,7 @@ import net.dv8tion.jda.api.utils.Compression;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.bot.model.GuildMusicManager;
 import javax.security.auth.login.LoginException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +31,7 @@ public class Main extends ListenerAdapter {
         this.playerManager = new DefaultAudioPlayerManager();
         AudioSourceManagers.registerRemoteSources(playerManager);
         AudioSourceManagers.registerLocalSource(playerManager);
+        this.guildMusicManager = new GuildMusicManager(playerManager);
     }
 
     public static void main(String[] args) {
@@ -55,6 +57,7 @@ public class Main extends ListenerAdapter {
 
     private final AudioPlayerManager playerManager;
     private final Map<Long, GuildMusicManager> musicManagers;
+    private final GuildMusicManager guildMusicManager;
 
     private synchronized GuildMusicManager getGuildAudioPlayer(Guild guild) {
         long guildId = Long.parseLong(guild.getId());
@@ -90,38 +93,42 @@ public class Main extends ListenerAdapter {
             @Override
             public void trackLoaded(AudioTrack track) {
                 channel.sendMessage("Adding to queue " + track.getInfo().title).queue();
-
                 play(channel.getGuild(), musicManager, track);
             }
 
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
                 AudioTrack firstTrack = playlist.getSelectedTrack();
-
+                System.out.println("playlistLoaded");
                 if (firstTrack == null) {
+                    System.out.println();
                     firstTrack = playlist.getTracks().get(0);
                 }
 
                 channel.sendMessage("Adding to queue " + firstTrack.getInfo().title + " (first track of playlist " + playlist.getName() + ")").queue();
-
                 play(channel.getGuild(), musicManager, firstTrack);
             }
 
             @Override
             public void noMatches() {
+                try {
+                    guildMusicManager.searchOnYouTube(trackUrl);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 channel.sendMessage("Nothing found by " + trackUrl).queue();
             }
 
             @Override
             public void loadFailed(FriendlyException exception) {
                 channel.sendMessage("Could not play: " + exception.getMessage()).queue();
+                exception.printStackTrace();
             }
         });
     }
 
     private void play(Guild guild, GuildMusicManager musicManager, AudioTrack track) {
         connectToFirstVoiceChannel(guild.getAudioManager());
-
         musicManager.scheduler.queue(track);
     }
 
