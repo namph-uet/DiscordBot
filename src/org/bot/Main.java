@@ -78,7 +78,18 @@ public class Main extends ListenerAdapter {
         String[] command = event.getMessage().getContentRaw().split(" ", 2);
 
         if ("~play".equals(command[0]) && command.length == 2) {
-            loadAndPlay(event.getChannel(), command[1]);
+            String url = null;
+            if(!command[1].contains("https") && !command[1].contains("http")) {
+                try {
+                    url = guildMusicManager.searchOnYouTube(command[1]);
+                } catch (IOException e) {
+                    url =  "";
+                }
+            } else {
+                url = command[1];
+            }
+            System.out.println(url);
+            loadAndPlay(event.getChannel(),url);
         } else if ("~skip".equals(command[0])) {
             skipTrack(event.getChannel());
         }
@@ -111,11 +122,6 @@ public class Main extends ListenerAdapter {
 
             @Override
             public void noMatches() {
-                try {
-                    guildMusicManager.searchOnYouTube(trackUrl);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
                 channel.sendMessage("Nothing found by " + trackUrl).queue();
             }
 
