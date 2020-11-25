@@ -8,10 +8,7 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.managers.AudioManager;
@@ -22,7 +19,9 @@ import org.bot.model.GuildMusicManager;
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class Main extends ListenerAdapter {
     private Main() {
@@ -58,6 +57,7 @@ public class Main extends ListenerAdapter {
     private final AudioPlayerManager playerManager;
     private final Map<Long, GuildMusicManager> musicManagers;
     private final GuildMusicManager guildMusicManager;
+    private List<Member> memberListPlayGame;
 
     private synchronized GuildMusicManager getGuildAudioPlayer(Guild guild) {
         long guildId = Long.parseLong(guild.getId());
@@ -76,7 +76,6 @@ public class Main extends ListenerAdapter {
     @Override
     public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
         String[] command = event.getMessage().getContentRaw().split(" ", 2);
-
         if ("~play".equals(command[0]) && command.length == 2) {
             String url = null;
             if(!command[1].contains("https") && !command[1].contains("http")) {
@@ -92,7 +91,13 @@ public class Main extends ListenerAdapter {
             loadAndPlay(event.getChannel(),url);
         } else if ("~skip".equals(command[0])) {
             skipTrack(event.getChannel());
+        } else if("~play".equals(command[0])) {
+            memberListPlayGame.add(event.getMember());
         }
+
+        event.getMember().getUser().openPrivateChannel().queue(privateChannel -> {
+            privateChannel.sendMessage("hello").queue();
+        });
 
         super.onGuildMessageReceived(event);
     }
@@ -105,6 +110,7 @@ public class Main extends ListenerAdapter {
             public void trackLoaded(AudioTrack track) {
                 channel.sendMessage("Adding to queue " + track.getInfo().title).queue();
                 play(channel.getGuild(), musicManager, track);
+                List<Member> members = channel.getMembers();
             }
 
             @Override
