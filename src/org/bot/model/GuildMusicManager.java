@@ -51,7 +51,7 @@ public class GuildMusicManager {
 
     public String searchOnYouTube(String searchKeyword) throws IOException {
         String keyword = searchKeyword.replace(" ", "+");
-        String URL = "https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=" + keyword + "&key=" + config.getAPIkey();
+        String URL = "https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=" + keyword + "&key=" + config.getConfig("googleApiKey");
         Document doc = Jsoup.connect(URL).timeout(10 * 1000).ignoreContentType(true).get();
 
         String getJson = doc.text();

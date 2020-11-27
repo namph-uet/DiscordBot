@@ -7,11 +7,10 @@ import java.util.Date;
 import java.util.Properties;
 
 public class CrunchifyGetPropertyValues {
-    String result = "";
     InputStream inputStream;
 
-    public String getAPIkey() throws IOException {
-        String APIkey = "";
+    public String getConfig(String key) throws IOException {
+        String value = "";
         try {
             Properties prop = new Properties();
             String propFileName = "config.properties";
@@ -27,13 +26,13 @@ public class CrunchifyGetPropertyValues {
             Date time = new Date(System.currentTimeMillis());
 
             // get the property value and print it out
-            APIkey = prop.getProperty("googleApiKey");
+            value = prop.getProperty(key);
 
         } catch (Exception e) {
             System.out.println("Exception: " + e);
         } finally {
             inputStream.close();
         }
-        return APIkey;
+        return value;
     }
 }
