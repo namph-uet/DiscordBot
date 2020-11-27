@@ -15,18 +15,17 @@ import net.dv8tion.jda.api.managers.AudioManager;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.Compression;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import org.bot.game.AgrouGame;
 import org.bot.model.GuildMusicManager;
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class Main extends ListenerAdapter {
     private Main() {
         this.musicManagers = new HashMap<>();
-
         this.playerManager = new DefaultAudioPlayerManager();
         AudioSourceManagers.registerRemoteSources(playerManager);
         AudioSourceManagers.registerLocalSource(playerManager);
@@ -87,12 +86,16 @@ public class Main extends ListenerAdapter {
             } else {
                 url = command[1];
             }
-            System.out.println(url);
             loadAndPlay(event.getChannel(),url);
         } else if ("~skip".equals(command[0])) {
             skipTrack(event.getChannel());
         } else if("~play".equals(command[0])) {
             memberListPlayGame.add(event.getMember());
+        }
+        else if("~start game".equals(command[0])) {
+            AgrouGame agrouGame = new AgrouGame(memberListPlayGame);
+            Thread gameThread = new Thread(agrouGame);
+            gameThread.start();
         }
 
         event.getMember().getUser().openPrivateChannel().queue(privateChannel -> {
