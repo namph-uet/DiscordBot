@@ -8,8 +8,11 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.managers.AudioManager;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -17,11 +20,11 @@ import net.dv8tion.jda.api.utils.Compression;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.bot.game.AgrouGame;
 import org.bot.model.GuildMusicManager;
+
+import javax.annotation.Nonnull;
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Main extends ListenerAdapter {
     private Main() {
@@ -30,6 +33,7 @@ public class Main extends ListenerAdapter {
         AudioSourceManagers.registerRemoteSources(playerManager);
         AudioSourceManagers.registerLocalSource(playerManager);
         this.guildMusicManager = new GuildMusicManager(playerManager);
+        memberListPlayGame = new ArrayList<>();
     }
 
     public static void main(String[] args) {
@@ -41,7 +45,7 @@ public class Main extends ListenerAdapter {
         builder.setBulkDeleteSplittingEnabled(false);
         // Disable compression (not recommended)
         builder.setCompression(Compression.NONE);
-        // Set activity (like "playing Something")
+        // Set activity (like "playing Something");
         builder.setActivity(Activity.watching("TV"));
 
         builder.addEventListeners(new Main());
@@ -74,6 +78,7 @@ public class Main extends ListenerAdapter {
 
     @Override
     public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
+
         String[] command = event.getMessage().getContentRaw().split(" ", 2);
         if ("~play".equals(command[0]) && command.length == 2) {
             String url = null;
@@ -92,7 +97,7 @@ public class Main extends ListenerAdapter {
         } else if("~play".equals(command[0])) {
             memberListPlayGame.add(event.getMember());
         }
-        else if("~start game".equals(command[0])) {
+        else if("~start".equals(command[0])) {
             AgrouGame agrouGame = new AgrouGame(memberListPlayGame);
             Thread gameThread = new Thread(agrouGame);
             gameThread.start();
@@ -104,6 +109,13 @@ public class Main extends ListenerAdapter {
 
         super.onGuildMessageReceived(event);
     }
+
+    @Override
+    public void onPrivateMessageReceived(@Nonnull PrivateMessageReceivedEvent event) {
+        System.out.println("sdas");
+        event.getChannel().sendMessage("main class").queue();
+    }
+
 
     private void loadAndPlay(final TextChannel channel, final String trackUrl) {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
@@ -161,5 +173,15 @@ public class Main extends ListenerAdapter {
                 break;
             }
         }
+    }
+
+    @Override
+    public void onMessageReceived(MessageReceivedEvent event)
+    {
+        System.out.println("dsda");
+        if(event.isFromType(ChannelType.PRIVATE)) {
+            System.out.println("sada");
+        }
+        ChannelType d = event.getChannelType();
     }
 }
